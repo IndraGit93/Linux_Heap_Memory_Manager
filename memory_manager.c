@@ -38,18 +38,18 @@ mm_get_new_vm_page_from_kernel(int units){
 static void
 mm_return_vm_page_to_kernel(void* vm_page, int units){
     if(munmap(vm_page, units*SYSTEM_PAGE_SIZE )){
-        printf("Error: Could not return vm page to kernel");
+        printf("Error: Could not return vm page to kernel\n");
     }
 }
 
 
 void mm_instantiate_new_page_family(char* struct_name, __uint32_t struct_size){
-    
     vm_page_family_t* vm_page_family_curr = NULL;
     vm_page_for_families_t* new_vm_page_for_families;
 
     if(struct_size > SYSTEM_PAGE_SIZE){
-        printf("Error: %s() structure %s Size exceeds system page size", __FUNCTION__, struct_name);
+        printf("Error: %s() structure %s Size exceeds system page size \n", __FUNCTION__, struct_name);
+        return;
     }
 
     if(!first_vm_page_for_families){
@@ -85,26 +85,32 @@ void mm_instantiate_new_page_family(char* struct_name, __uint32_t struct_size){
 
 }
 
-
-typedef struct emp{
-    int num;
-    int age;
-}emp_t;
-
-
-int main(){
-
-    mm_init();
-
-    void* vm_page = mm_get_new_vm_page_from_kernel(2);
-
-    if(vm_page){
-        printf("Received 2 vm pages from kernel");
+void mm_print_registered_page_families(){
+    vm_page_family_t* vm_page_family_curr = NULL;
+    
+    if(!first_vm_page_for_families){
+        printf("Error: No page family registered yet! \n");
+        return;
     }
+    printf("List of total structures registered with LMM:\n");
+    ITERATE_PAGE_FAMILIES_BEGIN(first_vm_page_for_families, vm_page_family_curr){
 
-    mm_return_vm_page_to_kernel(vm_page,2);
+        printf("struct name %s, struct size: %d \n", vm_page_family_curr->struct_name, vm_page_family_curr->struct_size);
 
 
-    mm_instantiate_new_page_family("emp", sizeof(emp_t));
-    return 0;
+    }ITERATE_PAGE_FAMILIES_END(first_vm_page_for_families, vm_page_family_curr);    
+
+}
+
+vm_page_family_t * lookup_page_family_by_name (char *struct_name){
+    vm_page_family_t* vm_page_family_curr = NULL;
+    ITERATE_PAGE_FAMILIES_BEGIN(first_vm_page_for_families, vm_page_family_curr){
+        printf("struct name %s, struct size: %d \n", vm_page_family_curr->struct_name, vm_page_family_curr->struct_size);
+        if(strncmp(vm_page_family_curr->struct_name, struct_name, MAX_STRUCT_NAME_SIZE) == 0){
+            return vm_page_family_curr;
+            
+        }
+    }ITERATE_PAGE_FAMILIES_END(first_vm_page_for_families, vm_page_family_curr);    
+     printf("Error: No structure with name: %s registered with LMM \n", struct_name);
+     return NULL;
 }

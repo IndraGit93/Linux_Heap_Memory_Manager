@@ -1,4 +1,10 @@
+#ifndef MM_H
+#define MM_H
+
 #include <stdint.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 #define MAX_STRUCT_NAME_SIZE 50
 
@@ -29,7 +35,7 @@ typedef struct vm_page_for_families{
 }vm_page_for_families_t;
 
 
-vm_page_for_families_t* first_vm_page_for_families;
+static vm_page_for_families_t* first_vm_page_for_families = NULL;
 
 #define MAX_FAMILIES_PER_VM_PAGE\
     ((SYSTEM_PAGE_SIZE) - sizeof(vm_page_family_t *))/sizeof(vm_page_family_t)
@@ -43,3 +49,12 @@ vm_page_for_families_t* first_vm_page_for_families;
         curr++,count++) { \
 
 #define ITERATE_PAGE_FAMILIES_END(vm_page_for_familiy_ptr, curr) }}
+
+
+
+
+void mm_print_registered_page_families();
+vm_page_family_t * lookup_page_family_by_name (char *struct_name);
+
+
+#endif //END_MM_H
