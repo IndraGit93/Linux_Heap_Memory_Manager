@@ -8,18 +8,37 @@
 
 #define MAX_STRUCT_NAME_SIZE 50
 
+typedef enum{
+
+    MM_FALSE,
+    MM_TRUE
+} vm_bool_t;
+
 /*Forward Declaration*/
 struct vm_page_family_;
+
+
+typedef struct block_meta_data_{
+
+    vm_bool_t is_free;
+    uint32_t block_size;
+    uint32_t offset;    /*offset from the start of the page*/
+   // glthread_t priority_thread_glue;
+    struct block_meta_data_ *prev_block;
+    struct block_meta_data_ *next_block;
+} block_meta_data_t;
 
 typedef struct vm_page_{
     struct vm_page_ *next;
     struct vm_page_ *prev;
     struct vm_page_family_ *pg_family; /*back pointer*/
+    block_meta_data_t block_meta_data;
     uint32_t page_index;
     uint32_t page_size;
-  //  block_meta_data_t block_meta_data;
+
     char page_memory[0];
 } vm_page_t;
+
 
 
 typedef struct vm_page_family{
@@ -53,8 +72,49 @@ static vm_page_for_families_t* first_vm_page_for_families = NULL;
 
 
 
-void mm_print_registered_page_families();
+    void mm_print_registered_page_families();
 vm_page_family_t * lookup_page_family_by_name (char *struct_name);
+
+
+
+
+
+#define offset_of(container_structure, field_name)  \
+    ((size_t)&(((container_structure *)0)->field_name))
+
+
+#define MM_GET_PAGE_FROM_META_BLOCK(block_meta_data_ptr)    \
+    ((void * )((char *)block_meta_data_ptr - block_meta_data_ptr->offset))
+
+#define NEXT_META_BLOCK(block_meta_data_ptr)    \
+    (block_meta_data_t*)block_meta_data_ptr->next_block
+
+#define NEXT_META_BLOCK_BY_SIZE(block_meta_data_ptr)        \
+    (block_meta_data_t *)((char *)(block_meta_data_ptr + 1) \
+        + block_meta_data_ptr->block_size)
+
+#define PREV_META_BLOCK(block_meta_data_ptr)    \
+    (block_meta_data_ptr->prev_block)
+
+#define mm_bind_blocks_for_allocation(allocated_meta_block, free_meta_block)  \
+    free_meta_block->prev_block = allocated_meta_block;        \
+    free_meta_block->next_block = allocated_meta_block->next_block;    \
+    allocated_meta_block->next_block = free_meta_block;                \
+    if (free_meta_block->next_block)                                   \
+    free_meta_block->next_block->prev_block = free_meta_block
+
+#define ITERATE_VM_PAGE_ALL_BLOCKS_BEGIN(vm_page_ptr, curr)    \
+{                                                              \
+    curr = &vm_page_ptr->block_meta_data;                      \
+    block_meta_data_t *next = NULL;                            \
+    for( ; curr; curr = next){                                 \
+        next = NEXT_META_BLOCK(curr);
+
+#define ITERATE_VM_PAGE_ALL_BLOCKS_END(vm_page_ptr, curr)      \
+    }}
+
+
+int get_num_of_free_blcoks(vm_page_t* vm_page_ptr);
 
 
 #endif //END_MM_H

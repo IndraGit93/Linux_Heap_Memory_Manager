@@ -114,3 +114,23 @@ vm_page_family_t * lookup_page_family_by_name (char *struct_name){
      printf("Error: No structure with name: %s registered with LMM \n", struct_name);
      return NULL;
 }
+
+void
+mm_print_vm_page_details(vm_page_t *vm_page){
+
+    printf("\t\t next = %p, prev = %p\n", vm_page->next, vm_page->prev);
+  //  printf("\t\t page family = %s\n", vm_page->pg_family->struct_name);
+
+    uint32_t j = 0;
+    block_meta_data_t *curr;
+    ITERATE_VM_PAGE_ALL_BLOCKS_BEGIN(vm_page, curr){
+
+        printf("\t\t\t%-14p Block %-3u %s  block_size = %-6u  "
+                "offset = %-6u  prev = %-14p  next = %p\n",
+                curr,
+                j++, curr->is_free ? "F R E E D" : "ALLOCATED",
+                curr->block_size, curr->offset,
+                curr->prev_block,
+                curr->next_block);
+    } ITERATE_VM_PAGE_ALL_BLOCKS_END(vm_page, curr);
+}
