@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#include <glthread.h>
 
 #define MAX_STRUCT_NAME_SIZE 50
 
@@ -23,7 +24,7 @@ typedef struct block_meta_data_{
     vm_bool_t is_free;
     uint32_t block_size;
     uint32_t offset;    /*offset from the start of the page*/
-   // glthread_t priority_thread_glue;
+    glthread_t priority_thread_glue;
     struct block_meta_data_ *prev_block;
     struct block_meta_data_ *next_block;
 } block_meta_data_t;
@@ -41,7 +42,7 @@ typedef struct vm_page_{
 
 
 
-typedef struct vm_page_family{
+typedef struct vm_page_family_{
     char struct_name[MAX_STRUCT_NAME_SIZE];
     uint32_t struct_size;
     vm_page_t* first_page;

@@ -9,15 +9,16 @@ CFLAGS += -Wno-unused-function -Wno-unused-variable
 endif
 
 CFLAGS += -I.
+CFLAGS += -Igluethread/
 CFLAGS += -I$(UNITY_PATH)
 CFLAGS += -I$(UNITY_PATH)/unity_src
 LDFLAGS = -L$(UNITY_PATH)/unity_src
 
 # Define the object files for the application
-OBJ_APP = $(OBJ_DIR)/memory_manager.o $(OBJ_DIR)/app.o
+OBJ_APP = $(OBJ_DIR)/memory_manager.o $(OBJ_DIR)/app.o $(OBJ_DIR)/glthread.o
 
 # Define the object files for the unit tests
-OBJ_TEST = $(OBJ_DIR)/memory_manager.o $(OBJ_DIR)/test_mm.o
+OBJ_TEST = $(OBJ_DIR)/memory_manager.o $(OBJ_DIR)/test_mm.o $(OBJ_DIR)/glthread.o
 
 # Default target, builds both the application and the unit tests
 all: $(OBJ_DIR) test_mm app
@@ -33,6 +34,10 @@ test_mm: $(OBJ_TEST)
 # Builds the app executable for the application
 app: $(OBJ_APP)
 	$(CC) $(CFLAGS) -o app $(OBJ_APP)
+
+# Compile glthread.c into glthread.o
+$(OBJ_DIR)/glthread.o: gluethread/glthread.c gluethread/glthread.h | $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 # Compile memory_manager.c into memory_manager.o
 $(OBJ_DIR)/memory_manager.o: memory_manager.c memory_manager.h | $(OBJ_DIR)
