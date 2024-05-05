@@ -134,3 +134,38 @@ mm_print_vm_page_details(vm_page_t *vm_page){
                 curr->next_block);
     } ITERATE_VM_PAGE_ALL_BLOCKS_END(vm_page, curr);
 }
+
+static void
+mm_union_free_blocks(block_meta_data_t *first,
+        block_meta_data_t *second){
+
+    assert(first->is_free == MM_TRUE &&
+            second->is_free == MM_TRUE);
+
+    first->block_size += sizeof(block_meta_data_t) +
+        second->block_size;
+
+    first->next_block = second->next_block;
+
+    if(second->next_block)
+        second->next_block->prev_block = first;
+}
+
+vm_bool_t
+mm_is_vm_page_empty(vm_page_t *vm_page){
+
+    if(vm_page->block_meta_data.next_block == NULL &&
+            vm_page->block_meta_data.prev_block == NULL &&
+            vm_page->block_meta_data.is_free == MM_TRUE){
+
+        return MM_TRUE;
+    }
+    return MM_FALSE;
+}
+
+static inline uint32_t
+mm_max_page_allocatable_memory(int units){
+
+    return (uint32_t)
+        ((SYSTEM_PAGE_SIZE * units) - offset_of(vm_page_t, page_memory));
+}

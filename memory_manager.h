@@ -113,8 +113,22 @@ vm_page_family_t * lookup_page_family_by_name (char *struct_name);
 #define ITERATE_VM_PAGE_ALL_BLOCKS_END(vm_page_ptr, curr)      \
     }}
 
+#define ITERATE_VM_PAGE_BEGIN(vm_page_family_ptr, curr)   \
+{                                             \
+    curr = vm_page_family_ptr->first_page;    \
+    vm_page_t *next = NULL;                   \
+    for(; curr; curr = next){                 \
+        next = curr->next;
 
-int get_num_of_free_blcoks(vm_page_t* vm_page_ptr);
+#define ITERATE_VM_PAGE_END(vm_page_family_ptr, curr)   \
+    }}
 
+vm_bool_t
+mm_is_vm_page_empty(vm_page_t *vm_page);
+
+#define MARK_VM_PAGE_EMPTY(vm_page_t_ptr)                                 \
+    vm_page_t_ptr->block_meta_data.next_block = NULL;                     \
+vm_page_t_ptr->block_meta_data.prev_block = NULL;                         \
+vm_page_t_ptr->block_meta_data.is_free = MM_TRUE
 
 #endif //END_MM_H
