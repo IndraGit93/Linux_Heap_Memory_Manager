@@ -29,6 +29,10 @@ typedef struct block_meta_data_{
     struct block_meta_data_ *next_block;
 } block_meta_data_t;
 
+GLTHREAD_TO_STRUCT(glthread_to_block_meta_data,
+    block_meta_data_t, priority_thread_glue, glthread_ptr);
+
+
 typedef struct vm_page_{
     struct vm_page_ *next;
     struct vm_page_ *prev;
@@ -46,7 +50,7 @@ typedef struct vm_page_family_{
     char struct_name[MAX_STRUCT_NAME_SIZE];
     uint32_t struct_size;
     vm_page_t* first_page;
-
+    glthread_t free_block_priority_list_head;
 }vm_page_family_t;
 
 typedef struct vm_page_for_families{
@@ -131,5 +135,23 @@ mm_is_vm_page_empty(vm_page_t *vm_page);
     vm_page_t_ptr->block_meta_data.next_block = NULL;                     \
 vm_page_t_ptr->block_meta_data.prev_block = NULL;                         \
 vm_page_t_ptr->block_meta_data.is_free = MM_TRUE
+
+
+
+
+static inline block_meta_data_t *
+mm_get_biggest_free_block_page_family(
+        vm_page_family_t *vm_page_family){
+
+    glthread_t *biggest_free_block_glue =
+        vm_page_family->free_block_priority_list_head.right;
+
+    if(biggest_free_block_glue)
+        return glthread_to_block_meta_data(biggest_free_block_glue);
+
+    return NULL;
+}
+
+
 
 #endif //END_MM_H
